@@ -133,9 +133,10 @@ void Put_Stone(int x,int y) {
     board[x][y] = player;
 }
 
-//結果を表示する関数
-void Show_Result() {
-    int count1 = 0, count2 = 0;
+//盤面の石を数える関数
+void Count_Stone(int &count1, int &count2) {
+    count1 = 0;
+    count2 = 0;
     for(int i=0;i<10;i++) {
         for(int j=0;j<10;j++) {
             if(board[i][j] == 1) {
@@ -146,6 +147,19 @@ void Show_Result() {
             }
         }
     }
+}
+
+//先手と後手の石の数を表示する関数
+void Show_Stone_Count() {
+    int count1 = 0, count2 = 0;
+    Count_Stone(count1,count2);
+    cout << "先手(白)" << count1 << "個  後手(黒)" << count2 << "個" << endl;
+}
+
+//結果を表示する関数
+void Show_Result() {
+    int count1 = 0, count2 = 0;
+    Count_Stone(count1,count2);
     cout << "先手(白) : " << count1 << " 個 後手(黒) : " << count2 << "個" << endl; 
     if(count1 > count2) {
         cout << "先手の(白)の勝利です" << endl;
@@ -192,6 +206,7 @@ int main() {
             cout << "後手(黒)は(" << x << ',' << y << ")に石を置きました。" << endl;
         }
         Put_Stone(x,y);
+        Show_Stone_Count();
         player *= (-1);
     }
     Show_Result();

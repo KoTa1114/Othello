@@ -142,8 +142,18 @@ void Put_Stone(int x,int y) {
 }
 
 // 1手前に戻す関数
-/*void Undo_Put_Stone(vector<pair<int, int> > &place_list) { // place_list[0]は新しく石を置いた場所 それ以外は既に置いてあった石を反転させた位置
-}*/
+void Undo_Put_Stone(vector<pair<int, int> > &place_list) { // place_list[0]は新しく石を置いた場所 それ以外は既に置いてあった石を反転させた位置
+    int list_size = place_list.size();
+    for(int i=0;i<list_size;i++) {
+        int x = place_list[i].first, y = place_list[i].second;
+        if(i == 0) {
+            board[x][y] = 0; //置いた石を取り除く
+        } else {
+            board[x][y] *= -1; //反転させた石を元に戻す
+        }
+    }
+    place_list.erase(place_list.begin(),place_list.end());
+}
 
 //結果を表示する関数
 void Show_Result() {

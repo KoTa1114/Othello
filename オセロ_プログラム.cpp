@@ -1,15 +1,10 @@
-//#include <bits/stdc++.h>
 #include <iostream>
 #include <vector>
 #include <unistd.h>
 #include <utility>
 #include <random>
 
-
 using namespace std;
-//基本的なオセロを実装した (先手、後手共に手動で動かす)ver1.00
-//ランダムに石を置くコンピュータと対戦ができるようにした ver1.01
-//プレイヤーが置くことのできる位置を表示する機能を追加した + オセロ盤の外枠を#から数字に変更した ver1.02
 
 //手番を表す変数
 int player = 1;

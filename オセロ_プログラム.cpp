@@ -1,4 +1,11 @@
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <unistd.h>
+#include <utility>
+#include <random>
+
+
 using namespace std;
 //基本的なオセロを実装した (先手、後手共に手動で動かす)ver1.00
 //ランダムに石を置くコンピュータと対戦ができるようにした ver1.01
@@ -93,7 +100,8 @@ void Show_Board() {
             if(board[i][j] == 1) cout << "●" ;
             if(board[i][j] == -1) cout << "◯" ;
             if(board[i][j] == 2) {
-                if(i == 0 || i == 9) cout << j;
+                if((i == 0 && j == 0) || (i == 0 && j == 9) || (i == 9 && j == 0) || (i == 9 && j == 9)) cout << ' ';
+                else if(i == 0 || i == 9) cout << j;
                 else cout << i;
             }
         }
@@ -133,10 +141,9 @@ void Put_Stone(int x,int y) {
     board[x][y] = player;
 }
 
-//盤面の石を数える関数
-void Count_Stone(int &count1, int &count2) {
-    count1 = 0;
-    count2 = 0;
+//結果を表示する関数
+void Show_Result() {
+    int count1 = 0, count2 = 0;
     for(int i=0;i<10;i++) {
         for(int j=0;j<10;j++) {
             if(board[i][j] == 1) {
@@ -147,19 +154,6 @@ void Count_Stone(int &count1, int &count2) {
             }
         }
     }
-}
-
-//先手と後手の石の数を表示する関数
-void Show_Stone_Count() {
-    int count1 = 0, count2 = 0;
-    Count_Stone(count1,count2);
-    cout << "先手(白)" << count1 << "個  後手(黒)" << count2 << "個" << endl;
-}
-
-//結果を表示する関数
-void Show_Result() {
-    int count1 = 0, count2 = 0;
-    Count_Stone(count1,count2);
     cout << "先手(白) : " << count1 << " 個 後手(黒) : " << count2 << "個" << endl; 
     if(count1 > count2) {
         cout << "先手の(白)の勝利です" << endl;
@@ -177,6 +171,7 @@ int main() {
     Make_Board();
     while(Can_Continue() == true) {
         Show_Board();
+        sleep(1);
         int x , y;
         if(player == 1) {
             cout << "先手(白)の番です。石を置く場所を入力してください。" << endl;
@@ -192,10 +187,10 @@ int main() {
             }
         }
         else {
-            vector<pair<int,int>> candidate;
+            vector<pair<int,int> > candidate;
             for(int i=0;i<10;i++) {
                 for(int j=0;j<10;j++) {
-                    if(Can_Put(i,j) == true) candidate.emplace_back(make_pair(i,j));
+                    if(Can_Put(i,j) == true) candidate.push_back(make_pair(i,j));
                 }
             }
             int max_size = candidate.size();
@@ -206,7 +201,7 @@ int main() {
             cout << "後手(黒)は(" << x << ',' << y << ")に石を置きました。" << endl;
         }
         Put_Stone(x,y);
-        Show_Stone_Count();
+        sleep(1);
         player *= (-1);
     }
     Show_Result();

@@ -12,6 +12,9 @@ int player = 1;
 //盤面の状態を記録する配列
 int board[10][10];
 
+//置いた石、反転させた石の位置を保存しておく配列
+vector<pair<int, int> > place_list;
+
 //盤面を初期化する関数
 void Make_Board() {
     for(int i=0;i<10;i++) {
@@ -106,6 +109,7 @@ void Show_Board() {
 
 //石を置く処理を実行する関数
 void Put_Stone(int x,int y) {
+    place_list.push_back(make_pair(x,y));
     for(int dx=-1;dx<2;dx++) {
         for(int dy=-1;dy<2;dy++) {
             if(dx == 0 && dy == 0) continue;
@@ -129,12 +133,17 @@ void Put_Stone(int x,int y) {
             if(can_put == true) {
                 for(int i=1;i<count;i++) {
                     board[x+dx*i][y+dy*i] = player;
+                    place_list.push_back(make_pair(x+dx*i,y+dy*i));
                 }
             }
         }
     }
     board[x][y] = player;
 }
+
+// 1手前に戻す関数
+/*void Undo_Put_Stone(vector<pair<int, int> > &place_list) { // place_list[0]は新しく石を置いた場所 それ以外は既に置いてあった石を反転させた位置
+}*/
 
 //結果を表示する関数
 void Show_Result() {

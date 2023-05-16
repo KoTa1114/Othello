@@ -13,7 +13,7 @@ int player = 1;
 int board[10][10];
 
 //置いた石、反転させた石の位置を保存しておく配列
-vector<pair<int, int> > place_list;
+vector<pair<int, int> > place_list_white, place_list_black;
 
 //盤面を初期化する関数
 void Make_Board() {
@@ -109,7 +109,8 @@ void Show_Board() {
 
 //石を置く処理を実行する関数
 void Put_Stone(int x,int y) {
-    place_list.push_back(make_pair(x,y));
+    if(player == 1) place_list_white.push_back(make_pair(x,y));
+    else place_list_black.push_back(make_pair(x,y));
     for(int dx=-1;dx<2;dx++) {
         for(int dy=-1;dy<2;dy++) {
             if(dx == 0 && dy == 0) continue;
@@ -133,7 +134,8 @@ void Put_Stone(int x,int y) {
             if(can_put == true) {
                 for(int i=1;i<count;i++) {
                     board[x+dx*i][y+dy*i] = player;
-                    place_list.push_back(make_pair(x+dx*i,y+dy*i));
+                    if(player == 1) place_list_white.push_back(make_pair(x+dx*i,y+dy*i));
+                    else place_list_black.push_back(make_pair(x+dx*i,y+dy*i));
                 }
             }
         }
@@ -152,7 +154,6 @@ void Undo_Put_Stone(vector<pair<int, int> > &place_list) { // place_list[0]は�
             board[x][y] *= -1; //反転させた石を元に戻す
         }
     }
-    place_list.erase(place_list.begin(),place_list.end());
 }
 
 //結果を表示する関数
@@ -195,7 +196,13 @@ int main() {
                 }
             }
             cout << "に石を置くことができます。" << endl;
+            cout << "-1 -1を入力することで1手のみ前に戻すことができます" << endl;
             cin >> x >> y;
+            if(x == -1 && y == -1) {
+                Undo_Put_Stone(place_list_black);
+                Undo_Put_Stone(place_list_white);
+                continue;
+            }
             while(Can_Put(x,y) == false) {
                 cin >> x >> y;
             }
@@ -214,6 +221,8 @@ int main() {
             y = candidate[rand].second;
             cout << "後手(黒)は(" << x << ',' << y << ")に石を置きました。" << endl;
         }
+        if(player == 1) place_list_white.erase(place_list_white.begin(),place_list_white.end());
+        else place_list_black.erase(place_list_black.begin(),place_list_black.end());
         Put_Stone(x,y);
         sleep(1);
         player *= (-1);

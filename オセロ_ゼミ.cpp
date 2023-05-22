@@ -13,7 +13,7 @@ int player = 1;
 int board[10][10];
 
 //置いた石、反転させた石の位置を保存しておく配列
-vector<pair<int, int> > place_list_white, place_list_black;
+vector<vector<pair<int, int> > > place_list_white, place_list_black;
 
 //盤面を初期化する関数
 void Make_Board() {
@@ -39,7 +39,6 @@ bool Can_Put(int x,int y) {
             if(dx == 0 && dy == 0) continue;
             int count = 1;
             while(true) {
-                //cout << x+dx*count <<  ' ' << y+dy*count << endl;
                 if(board[x+dx*count][y+dy*count] == 2 || board[x+dx*count][y+dy*count] == 0) break;
                 if(board[x+dx*count][y+dy*count] == player*(-1)) {
                     count++;
@@ -64,7 +63,6 @@ bool Can_Continue() {
     bool can_continue = false;
     for(int i=0;i<10;i++) {
         for(int j=0;j<10;j++) {
-            //cout << i << ' ' << j << endl;
             if(Can_Put(i,j) == true) {
                 can_continue = true;
                 break;
@@ -109,8 +107,8 @@ void Show_Board() {
 
 //石を置く処理を実行する関数
 void Put_Stone(int x,int y) {
-    if(player == 1) place_list_white.push_back(make_pair(x,y));
-    else place_list_black.push_back(make_pair(x,y));
+    vector<pair<int, int> > place_list_sub;
+    place_list_sub.push_back(make_pair(x,y));
     for(int dx=-1;dx<2;dx++) {
         for(int dy=-1;dy<2;dy++) {
             if(dx == 0 && dy == 0) continue;
@@ -134,26 +132,36 @@ void Put_Stone(int x,int y) {
             if(can_put == true) {
                 for(int i=1;i<count;i++) {
                     board[x+dx*i][y+dy*i] = player;
-                    if(player == 1) place_list_white.push_back(make_pair(x+dx*i,y+dy*i));
-                    else place_list_black.push_back(make_pair(x+dx*i,y+dy*i));
+                    place_list_sub.push_back(make_pair(x+dx*i,y+dy*i));
                 }
             }
         }
     }
     board[x][y] = player;
+    if(player == 1) {
+        place_list_white.push_back(place_list_sub);
+    } else if(player == -1) {
+        place_list_black.push_back(place_list_sub);
+    }
 }
 
 // 1手前に戻す関数
-void Undo_Put_Stone(vector<pair<int, int> > &place_list) { // place_list[0]は新しく石を置いた場所 それ以外は既に置いてあった石を反転させた位置
-    int list_size = place_list.size();
+void Undo_Put_Stone(vector<vector<pair<int, int> > > &place_list) { // place_list[i][0]は新しく石を置いた場所 それ以外は既に置いてあった石を反転させた位置
+    int id = place_list.size()-1;
+    if(id < 0) {
+        cout << "これ以上戻すことはできません" << endl;
+        return;
+    }
+    int list_size = place_list[id].size();
     for(int i=0;i<list_size;i++) {
-        int x = place_list[i].first, y = place_list[i].second;
+        int x = place_list[id][i].first, y = place_list[id][i].second;
         if(i == 0) {
             board[x][y] = 0; //置いた石を取り除く
         } else {
             board[x][y] *= -1; //反転させた石を元に戻す
         }
     }
+    place_list.pop_back();
 }
 
 //結果を表示する関数
@@ -221,8 +229,6 @@ int main() {
             y = candidate[rand].second;
             cout << "後手(黒)は(" << x << ',' << y << ")に石を置きました。" << endl;
         }
-        if(player == 1) place_list_white.erase(place_list_white.begin(),place_list_white.end());
-        else place_list_black.erase(place_list_black.begin(),place_list_black.end());
         Put_Stone(x,y);
         sleep(1);
         player *= (-1);

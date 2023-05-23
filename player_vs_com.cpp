@@ -334,16 +334,16 @@ Action Alpha_Beta(int depth, int x, int y, int alpha, int beta) {
     return action; 
 }
 
-int victory_white = 0, victory_black = 0;
-void Do_Game() {
-    place_list_white.clear();
-    place_list_black.clear();
-    player = 1;
+//メイン関数(オセロ 対戦ができる)
+int main() {
     Make_Board();
     while(Can_Continue() == true) {
+        Show_Board();
+        sleep(1);
         int x , y;
         vector<pair<int, int> > candidate; // 石をおける場所をもつ配列
         if(player == 1) {
+            cout << "先手(白)の番です。石を置く場所を入力してください。" << endl;
             for(int i=0;i<10;i++) {
                 for(int j=0;j<10;j++) {
                     if(Can_Put(i,j) == true) {
@@ -351,6 +351,11 @@ void Do_Game() {
                     }
                 }
             }
+            for(auto cand : candidate) {
+                int i = cand.first, j = cand.second;
+                cout << "(" << i << "," << j << ") ";
+            }
+            if(candidate.size() > 0) cout << "に石を置くことができます。" << endl;
             if(candidate.size() > 0) {
                 random_device rand_maker;
                 int rand = rand_maker() % candidate.size();
@@ -358,7 +363,18 @@ void Do_Game() {
                 y = candidate[rand].second;
             }
             else {
+                cout << "先手(白)は石を置くことができません" << endl;
                 place_list_white.push_back({{-1,-1}});
+            }
+            cout << "-1 -1を入力することで1手前に戻すことができます" << endl;
+            cin >> x >> y;
+            if(x == -1 && y == -1) {
+                Undo_Put_Stone(place_list_black);
+                Undo_Put_Stone(place_list_white);
+                continue;
+            }
+            while(Can_Put(x,y) == false) {
+                cin >> x >> y;
             }
         }
         else {
@@ -379,85 +395,6 @@ void Do_Game() {
                     x = action.x;
                     y = action.y;
                 }
-            } else {
-                place_list_black.push_back({{-1,-1}});
-            }
-        }
-        Put_Stone(x,y);
-        player *= (-1);
-    }
-    int cnt_w = 0, cnt_b = 0;
-    for(int i=0;i<10;i++) {
-        for(int j=0;j<10;j++) {
-            if(board[i][j] == 1) cnt_w++;
-            else if(board[i][j] == -1) cnt_b++;
-        }
-    }
-    if(cnt_w > cnt_b) victory_white++;
-    else if(cnt_w < cnt_b) victory_black++;
-}
-
-//メイン関数(オセロ 対戦ができる)
-int main() {
-    /*
-    Make_Board();
-    while(Can_Continue() == true) {
-        Show_Board();
-        //sleep(1);
-        int x , y;
-        vector<pair<int, int> > candidate; // 石をおける場所をもつ配列
-        if(player == 1) {
-            cout << "先手(白)の番です。石を置く場所を入力してください。" << endl;
-            for(int i=0;i<10;i++) {
-                for(int j=0;j<10;j++) {
-                    if(Can_Put(i,j) == true) {
-                        candidate.push_back(make_pair(i,j));
-                    }
-                }
-            }
-            //for(auto cand : candidate) {
-            //    int i = cand.first, j = cand.second;
-            //    cout << "(" << i << "," << j << ") ";
-            //}
-            //if(candidate.size() > 0) cout << "に石を置くことができます。" << endl;
-            if(candidate.size() > 0) {
-                random_device rand_maker;
-                int rand = rand_maker() % candidate.size();
-                x = candidate[rand].first;
-                y = candidate[rand].second;
-            }
-            else {
-                cout << "先手(白)は石を置くことができません" << endl;
-                place_list_white.push_back({{-1,-1}});
-            }
-            //cout << "-1 -1を入力することで1手前に戻すことができます" << endl;
-            //cin >> x >> y;
-            //if(x == -1 && y == -1) {
-            //    Undo_Put_Stone(place_list_black);
-            //    Undo_Put_Stone(place_list_white);
-            //    continue;
-            //}
-            //while(Can_Put(x,y) == false) {
-            //    cin >> x >> y;
-            //}
-        }
-        else {
-            for(int i=0;i<10;i++) {
-                for(int j=0;j<10;j++) {
-                    if(Can_Put(i,j) == true) candidate.push_back(make_pair(i,j));
-                }
-            }
-            int max_size = candidate.size();
-            if(max_size > 0) {
-                random_device rand_maker;
-                int rand = rand_maker() % max_size;
-                x = candidate[rand].first;
-                y = candidate[rand].second;
-                Action action = Mini_Max(mini_max_depth,-1,-1);
-                if(action.score != 0) {
-                    x = action.x;
-                    y = action.y;
-                }
                 cout << "後手(黒)は(" << x << ',' << y << ")に石を置きました。" << endl;
             } else {
                 cout << "後手(黒)は石を置くことができません" << endl;
@@ -465,12 +402,9 @@ int main() {
             }
         }
         Put_Stone(x,y);
-        //sleep(1);
+        sleep(1);
         player *= (-1);
     }
     Show_Result();
-    */
-   for(int i=0;i<100;i++) Do_Game();
-   cout << "w=" << victory_white << ' ' << "b=" << victory_black << endl;
     return 0;
 }

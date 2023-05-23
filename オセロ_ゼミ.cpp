@@ -38,29 +38,32 @@ bool is_in(int x, int y) {
 //盤面の評価関数
 int evaluation_function[10][10] = {
     {0,0,0,0,0,0,0,0,0,0},
-    {0,10,-5,3,3,3,3,-5,10,0},
-    {0,-5,-5,2,1,1,2,-5,-5,0},
-    {0,3,2,1,1,1,1,2,3,0},
-    {0,3,1,1,1,1,1,1,3,0},
-    {0,3,1,1,1,1,1,1,3,0},
-    {0,3,2,1,1,1,1,2,3,0},
-    {0,-5,-5,2,1,1,2,-5,-5,0},
-    {0,10,-5,3,3,3,3,-5,10,0},
+    {0,120,-20,20,5,5,20,-20,120,0},
+    {0,-20,-40,-5,-5,-5,-5,-40,-20,0},
+    {0,20,-5,15,3,3,15,-5,20,0},
+    {0,5,-5,3,3,3,3,-5,5,0},
+    {0,5,-5,3,3,3,3,-5,5,0},
+    {0,20,-5,15,3,3,15,-5,20,0},
+    {0,-20,-40,-5,-5,-5,-5,-40,-20,0},
+    {0,120,-20,20,5,5,20,-20,120,0},
     {0,0,0,0,0,0,0,0,0,0}
 };
+// https://niwakomablog.com/othello-algorithm-part5/　より引用
 
 
 // 盤面の評価値を計算する関数
 int Calculate_Score(int player) {
-    int score = 0;
+    int score_player = 0, score_opponent = 0;
     for(int i=0;i<10;i++) {
         for(int j=0;j<10;j++) {
             if(board[i][j] == player) {
-                score += evaluation_function[i][j];
+                score_player += evaluation_function[i][j];
+            } else if(board[i][j] == player*(-1)) {
+                score_opponent += evaluation_function[i][j];
             }
         }
     }
-    return score;
+    return score_player - score_opponent;
 }
 
 //(x,y)に石を置くことができるか判定する関数
@@ -233,7 +236,7 @@ struct Action {
     }
 };
 
-const int mini_max_depth = 2; //探索する深さ(偶数)
+const int mini_max_depth = 3; //探索する深さ(偶数)
 
 Action Mini_Max(int depth, int x, int y) {
     //葉に到達した場合は評価値を計算する
@@ -295,6 +298,61 @@ Action Mini_Max(int depth, int x, int y) {
     return action;
 }
 
+int alpha_beta_depth = 3;
+//alpha := 自分の番で最大の評価値  beta := 相手の番で最小の評価値
+// 相手の番でalphaより大きいと探索は打ち切り　自分の番でbetaより小さいと探索は打ち切り
+
+Action Alpha_Beta(int depth, int x, int y, int alpha, int beta) {
+    //葉に到達した場合は評価値を計算する
+    if(depth == 0) {
+        int score = Calculate_Score(-1); //黒をAIにする
+        Action action(score,x,y);
+        //cout << "depth=" << depth << ' ' << "x=" << x << ' ' << "y=" << y << ' ' <<  "score=" << score << endl;
+        return action;
+    }
+    Action action(0,x,y);
+    for(int i=0;i<10;i++) {
+        for(int j=0;j<10;j++) {
+            if(Can_Put(i,j)) {
+                Put_Stone(i,j);
+                player *= (-1);
+                Action action_sub = Alpha_Beta(depth-1,i,j,alpha,beta);
+                player *= (-1);
+                if(player == 1) Undo_Put_Stone(place_list_white);
+                else if(player == -1) Undo_Put_Stone(place_list_black);
+                if(player == 1) {
+                    beta = min(beta,action_sub.score);
+                    if(action_sub.score < alpha) {
+                        i = 10;
+                        j = 10;
+                    }
+                    if(action.score > action_sub.score) {
+                        action.score = action_sub.score;
+                        if(depth == alpha_beta_depth) {
+                            action.x = action_sub.x;
+                            action.y = action_sub.y;
+                        }
+                    }
+                } else if(player == -1) {
+                    alpha = max(alpha,action_sub.score);
+                    if(action_sub.score > beta) {
+                        i = 10;
+                        j = 10;
+                    }
+                    if(action.score < action_sub.score) {
+                        action.score = action_sub.score;
+                        if(depth == alpha_beta_depth) {
+                            action.x = action_sub.x;
+                            action.y = action_sub.y;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return action; 
+}
+
 int victory_white = 0, victory_black = 0;
 void Do_Game() {
     place_list_white.clear();
@@ -334,7 +392,8 @@ void Do_Game() {
                 int rand = rand_maker() % max_size;
                 x = candidate[rand].first;
                 y = candidate[rand].second;
-                Action action = Mini_Max(mini_max_depth,-1,-1);
+                //Action action = Mini_Max(mini_max_depth,-1,-1);
+                Action action = Alpha_Beta(alpha_beta_depth,-1,-1,-1e9,1e9);
                 if(action.score != 0) {
                     x = action.x;
                     y = action.y;

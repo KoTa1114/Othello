@@ -340,7 +340,8 @@ int main() {
     while(Can_Continue() == true) {
         Show_Board();
         sleep(1);
-        int x , y;
+        int x;
+        char y;
         vector<pair<int, int> > candidate; // 石をおける場所をもつ配列
         if(player == 1) {
             cout << "先手(白)の番です。石を置く場所を入力してください。" << endl;
@@ -353,27 +354,27 @@ int main() {
             }
             for(auto cand : candidate) {
                 int i = cand.first, j = cand.second;
-                cout << "(" << i << "," << j << ") ";
+                cout << "(" << i << "," << char('a'+j-1) << ") ";
             }
             if(candidate.size() > 0) cout << "に石を置くことができます。" << endl;
             if(candidate.size() > 0) {
                 random_device rand_maker;
                 int rand = rand_maker() % candidate.size();
                 x = candidate[rand].first;
-                y = candidate[rand].second;
+                //y = candidate[rand].second;
             }
             else {
                 cout << "先手(白)は石を置くことができません" << endl;
                 place_list_white.push_back({{-1,-1}});
             }
-            cout << "-1 -1を入力することで1手前に戻すことができます" << endl;
+            cout << "-1 zを入力することで1手前に戻すことができます" << endl;
             cin >> x >> y;
-            if(x == -1 && y == -1) {
+            if(x == -1 && y == 'z') {
                 Undo_Put_Stone(place_list_black);
                 Undo_Put_Stone(place_list_white);
                 continue;
             }
-            while(Can_Put(x,y) == false) {
+            while(Can_Put(x,(y-'a'+1)) == false) {
                 cin >> x >> y;
             }
         }
@@ -388,12 +389,12 @@ int main() {
                 random_device rand_maker;
                 int rand = rand_maker() % max_size;
                 x = candidate[rand].first;
-                y = candidate[rand].second;
+                y = char('a'+candidate[rand].second-1);
                 //Action action = Mini_Max(mini_max_depth,-1,-1);
                 Action action = Alpha_Beta(alpha_beta_depth,-1,-1,-1e9,1e9);
                 if(action.score != 0) {
                     x = action.x;
-                    y = action.y;
+                    y = char('a'+action.y-1);
                 }
                 cout << "後手(黒)は(" << x << ',' << y << ")に石を置きました。" << endl;
             } else {
@@ -401,7 +402,7 @@ int main() {
                 place_list_black.push_back({{-1,-1}});
             }
         }
-        Put_Stone(x,y);
+        Put_Stone(x,(y-'a'+1));
         sleep(1);
         player *= (-1);
     }

@@ -126,19 +126,19 @@ bool Can_Continue() {
 
 //盤面の状態を表示する関数
 void Show_Board() {
-    for(int i=0;i<10;i++) {
-        for(int j=0;j<10;j++) {
-            if(board[i][j] == 0) cout << "-" ;
-            if(board[i][j] == 1) cout << "●" ;
-            if(board[i][j] == -1) cout << "◯" ;
-            if(board[i][j] == 2) {
-                if((i == 0 && j == 0) || (i == 0 && j == 9) || (i == 9 && j == 0) || (i == 9 && j == 9)) cout << ' ';
-                else if(i == 0 || i == 9) cout << j;
-                else cout << i;
-            }
+    cout << "    a    b    c    d    e    f    g    h" << endl;
+    for(int i=1;i<9;i++) {
+        cout << "   ---- ---- ---- ---- ---- ---- ---- ----" << endl;
+        cout << i << ' ';
+        for(int j=1;j<9;j++) {
+            cout << "|";
+            if(board[i][j] == 1) cout << " ⚫︎ ";
+            else if(board[i][j] == -1) cout << " ⚪︎ ";
+            else cout << "    ";
         }
-        cout << endl;
+        cout << "|" << endl;
     }
+    cout << "   ---- ---- ---- ---- ---- ---- ---- ----" << endl;
 }
 
 //石を置く処理を実行する関数

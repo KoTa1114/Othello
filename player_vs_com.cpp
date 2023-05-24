@@ -357,12 +357,6 @@ int main() {
                 cout << "(" << i << "," << char('a'+j-1) << ") ";
             }
             if(candidate.size() > 0) cout << "に石を置くことができます。" << endl;
-            if(candidate.size() > 0) {
-                random_device rand_maker;
-                int rand = rand_maker() % candidate.size();
-                x = candidate[rand].first;
-                //y = candidate[rand].second;
-            }
             else {
                 cout << "先手(白)は石を置くことができません" << endl;
                 place_list_white.push_back({{-1,-1}});

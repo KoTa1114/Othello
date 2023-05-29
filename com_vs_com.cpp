@@ -36,7 +36,7 @@ bool is_in(int x, int y) {
 }
 
 //盤面の評価関数
-int evaluation_function[10][10] = {
+int evaluation_function1[10][10] = {
     {0,0,0,0,0,0,0,0,0,0},
     {0,120,-20,20,5,5,20,-20,120,0},
     {0,-20,-40,-5,-5,-5,-5,-40,-20,0},
@@ -50,9 +50,34 @@ int evaluation_function[10][10] = {
 };
 // https://niwakomablog.com/othello-algorithm-part5/　より引用
 
+int evaluation_function2[10][10] = {
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,1,1,1,1,1,1,1,1,0},
+    {0,1,1,1,1,1,1,1,1,0},
+    {0,1,1,1,1,1,1,1,1,0},
+    {0,1,1,1,1,1,1,1,1,0},
+    {0,1,1,1,1,1,1,1,1,0},
+    {0,1,1,1,1,1,1,1,1,0},
+    {0,1,1,1,1,1,1,1,1,0},
+    {0,1,1,1,1,1,1,1,1,0},
+    {0,0,0,0,0,0,0,0,0,0}
+};
+
+int evaluation_function_trained[10][10] = {
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,24,1,-54,74,-16,46,33,-68,0},
+    {0,-19,1,1,1,1,1,1,-9,0},
+    {0,0,1,1,-51,6,32,1,-41,0},
+    {0,41,31,1,1,1,1,5,1,0},
+    {0,1,-12,20,6,1,32,4,-31,0},
+    {0,1,25,11,-40,-22,-52,1,-15,0},
+    {0,1,74,-53,-43,-29,81,0,1,0},
+    {0,1,1,1,-18,1,-11,3,1,0},
+    {0,0,0,0,0,0,0,0,0,0}
+};
 
 // 盤面の評価値を計算する関数
-int Calculate_Score(int player) {
+int Calculate_Score(int player, int evaluation_function[10][10]) {
     int score_player = 0, score_opponent = 0;
     for(int i=0;i<10;i++) {
         for(int j=0;j<10;j++) {
@@ -260,12 +285,10 @@ Action Make_Random_Action() {
     return action;
 }
 
-const int mini_max_depth = 3; //探索する深さ(偶数)
-
-Action Mini_Max(int depth, int x, int y, int player_sub) {
+Action Mini_Max(int depth, int x, int y, int player_sub, int mini_max_depth, int evaluation_function[10][10]) {
     //葉に到達した場合は評価値を計算する
     if(depth == 0) {
-        int score = Calculate_Score(player_sub); //黒をAIにする
+        int score = Calculate_Score(player_sub,evaluation_function);
         Action action(score,x,y);
         return action;
     }
@@ -275,10 +298,10 @@ Action Mini_Max(int depth, int x, int y, int player_sub) {
             if(Can_Put(i,j)) {
                 Put_Stone(i,j);
                 player *= (-1);
-                Action action_sub = Mini_Max(depth-1,i,j,player_sub);
+                Action action_sub = Mini_Max(depth-1,i,j,player_sub,mini_max_depth,evaluation_function);
                 player *= (-1);
-                if(player == player_sub*(-1)) Undo_Put_Stone(place_list_white);
-                else if(player == player_sub) Undo_Put_Stone(place_list_black);
+                if(player == 1) Undo_Put_Stone(place_list_white);
+                else if(player == -1) Undo_Put_Stone(place_list_black);
                 if(player == player_sub*(-1)) {
                     if(action.score > action_sub.score) {
                         action.score = action_sub.score;
@@ -308,10 +331,10 @@ Action Mini_Max(int depth, int x, int y, int player_sub) {
 //alpha := 自分の番で最大の評価値  beta := 相手の番で最小の評価値
 // 相手の番でalphaより大きいと探索は打ち切り　自分の番でbetaより小さいと探索は打ち切り
 
-Action Alpha_Beta(int depth, int x, int y, int alpha, int beta, int player_sub, int alpha_beta_depth) {
+Action Alpha_Beta(int depth, int x, int y, int alpha, int beta, int player_sub, int alpha_beta_depth, int evaluation_function[10][10] ) {
     //葉に到達した場合は評価値を計算する
     if(depth == 0) {
-        int score = Calculate_Score(player_sub);
+        int score = Calculate_Score(player_sub,evaluation_function);
         Action action(score,x,y);
         return action;
     }
@@ -321,7 +344,7 @@ Action Alpha_Beta(int depth, int x, int y, int alpha, int beta, int player_sub, 
             if(Can_Put(i,j)) {
                 Put_Stone(i,j);
                 player *= (-1);
-                Action action_sub = Alpha_Beta(depth-1,i,j,alpha,beta,player_sub,alpha_beta_depth);
+                Action action_sub = Alpha_Beta(depth-1,i,j,alpha,beta,player_sub,alpha_beta_depth,evaluation_function);
                 player *= (-1);
                 if(player == 1) Undo_Put_Stone(place_list_white);
                 else if(player == -1) Undo_Put_Stone(place_list_black);
@@ -373,12 +396,14 @@ void Do_Game() {
         Action action(-1,x,y);
         if(player == 1) {
             //action = Make_Random_Action();
-            int depth1 = 4;
-            action = Alpha_Beta(depth1,-1,-1,-1e9,1e9,player,depth1);
+            int depth1 = 1;
+            action = Alpha_Beta(depth1,-1,-1,-1e9,1e9,player,depth1,evaluation_function2);
+            //action = Mini_Max(depth1,-1,-1,player,depth1);
         } else if(player == -1) {
-            int depth2 = 2;
-            action = Alpha_Beta(depth2,-1,-1,-1e9,1e9,player,depth2);
-            //action = Make_Random_Action();
+            int depth2 = 1;
+            //action = Alpha_Beta(depth2,-1,-1,-1e9,1e9,player,depth2,evaluation_function1);
+            action = Make_Random_Action();
+            //action = Mini_Max(depth2,-1,-1,player,depth2);
         }
         x = action.x;
         y = action.y;
@@ -406,9 +431,55 @@ void Do_Game() {
     else if(cnt_w < cnt_b) victory_black++;
 }
 
+int victory = 0;
+
+//山登り法 評価関数を改善
+void Hill_Climbing(int evaluation_function[10][10]) {
+    random_device rd;
+    default_random_engine eng(rd());
+    uniform_int_distribution<int> distr(1,8);
+    vector<Action> pre_eva_list;
+    for(int i=0;i<4;i++) {
+        int x = distr(eng), y = distr(eng), eva = rd()%50;
+        if(rd()%2 == 0) eva *= -1;
+        Action pre_action(evaluation_function[x][y],x,y);
+        pre_eva_list.push_back(pre_action);
+        evaluation_function[x][y] += eva;
+    }
+    for(int i=0;i<200;i++) {
+        Do_Game();
+    }
+    //勝利数が今までの最大値より小さかった場合は変更を無効にする
+    if(victory >= victory_white) {
+        for(int i=0;i<4;i++) {
+            Action action = pre_eva_list[i];
+            evaluation_function[action.x][action.y] = action.score;
+        }
+    } else {
+        victory = victory_white;
+    }
+    cout << victory << ' ';
+    victory_white = 0;
+    victory_black = 0;
+}
+
+void Show_Evaluation_Function(int evaluation_function[10][10]) {
+    for(int i=0;i<10;i++) {
+        cout << "{";
+        for(int j=0;j<10;j++) {
+            cout << evaluation_function[i][j];
+            if(j != 9) cout << ",";
+        }
+        if(i != 9) cout << "}," << endl;
+        else cout << "}" << endl;
+    }
+}
+
 //メイン関数(オセロ 対戦ができる)
 int main() {
-   for(int i=0;i<1;i++) Do_Game();
-   cout << "w=" << victory_white << ' ' << "b=" << victory_black << endl;
+   /*for(int i=0;i<100;i++) {Do_Game(); cout << i << endl;}
+   cout << "w=" << victory_white << ' ' << "b=" << victory_black << endl;*/
+   for(int i=0;i<1000;i++) {Hill_Climbing(evaluation_function2); cout << i << endl;}
+   Show_Evaluation_Function(evaluation_function2);
     return 0;
 }

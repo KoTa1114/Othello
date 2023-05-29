@@ -238,107 +238,11 @@ struct Action {
     }
 };
 
-const int mini_max_depth = 3; //探索する深さ(偶数)
-
-Action Mini_Max(int depth, int x, int y) {
-    //葉に到達した場合は評価値を計算する
-    if(depth == 0) {
-        int score = Calculate_Score(-1); //黒をAIにする
-        Action action(score,x,y);
-        return action;
-    }
-    Action action(0,x,y);
-    for(int i=0;i<10;i++) {
-        for(int j=0;j<10;j++) {
-            if(Can_Put(i,j)) {
-                Put_Stone(i,j);
-                player *= (-1);
-                Action action_sub = Mini_Max(depth-1,i,j);
-                player *= (-1);
-                if(player == 1) Undo_Put_Stone(place_list_white);
-                else if(player == -1) Undo_Put_Stone(place_list_black);
-                if(player == 1) {
-                    if(action.score > action_sub.score) {
-                        action.score = action_sub.score;
-                        if(depth == mini_max_depth) {
-                            action.x = action_sub.x;
-                            action.y = action_sub.y;
-                        }
-                    }
-                } else if(player == -1) {
-                    if(action.score < action_sub.score) {
-                        action.score = action_sub.score;
-                        if(depth == mini_max_depth) {
-                            action.x = action_sub.x;
-                            action.y = action_sub.y;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return action;
-}
-
-int alpha_beta_depth = 1;
-//alpha := 自分の番で最大の評価値  beta := 相手の番で最小の評価値
-// 相手の番でalphaより大きいと探索は打ち切り　自分の番でbetaより小さいと探索は打ち切り
-
-Action Alpha_Beta(int depth, int x, int y, int alpha, int beta) {
-    //葉に到達した場合は評価値を計算する
-    if(depth == 0) {
-        int score = Calculate_Score(-1); //黒をAIにする
-        Action action(score,x,y);
-        return action;
-    }
-    Action action(0,x,y);
-    for(int i=0;i<10;i++) {
-        for(int j=0;j<10;j++) {
-            if(Can_Put(i,j)) {
-                Put_Stone(i,j);
-                player *= (-1);
-                Action action_sub = Alpha_Beta(depth-1,i,j,alpha,beta);
-                player *= (-1);
-                if(player == 1) Undo_Put_Stone(place_list_white);
-                else if(player == -1) Undo_Put_Stone(place_list_black);
-                if(player == 1) {
-                    beta = min(beta,action_sub.score);
-                    if(action_sub.score < alpha) {
-                        i = 10;
-                        j = 10;
-                    }
-                    if(action.score > action_sub.score) {
-                        action.score = action_sub.score;
-                        if(depth == alpha_beta_depth) {
-                            action.x = action_sub.x;
-                            action.y = action_sub.y;
-                        }
-                    }
-                } else if(player == -1) {
-                    alpha = max(alpha,action_sub.score);
-                    if(action_sub.score > beta) {
-                        i = 10;
-                        j = 10;
-                    }
-                    if(action.score < action_sub.score) {
-                        action.score = action_sub.score;
-                        if(depth == alpha_beta_depth) {
-                            action.x = action_sub.x;
-                            action.y = action_sub.y;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return action; 
-}
-
 const int initial_x = -100, initial_y = -100;
 
 // 石をおける場所をランダムに選択して返す
 Action Make_Random_Action() {
-    Action action(initial_x, initial_y, -1);
+    Action action(-1, initial_x, initial_y);
     vector<pair<int,int> > candidate; //石を置ける場所をもつ配列
     for(int i=0;i<10;i++) {
         for(int j=0;j<10;j++) {
@@ -356,6 +260,107 @@ Action Make_Random_Action() {
     return action;
 }
 
+const int mini_max_depth = 3; //探索する深さ(偶数)
+
+Action Mini_Max(int depth, int x, int y, int player_sub) {
+    //葉に到達した場合は評価値を計算する
+    if(depth == 0) {
+        int score = Calculate_Score(player_sub); //黒をAIにする
+        Action action(score,x,y);
+        return action;
+    }
+    Action action(0,x,y);
+    for(int i=0;i<10;i++) {
+        for(int j=0;j<10;j++) {
+            if(Can_Put(i,j)) {
+                Put_Stone(i,j);
+                player *= (-1);
+                Action action_sub = Mini_Max(depth-1,i,j,player_sub);
+                player *= (-1);
+                if(player == player_sub*(-1)) Undo_Put_Stone(place_list_white);
+                else if(player == player_sub) Undo_Put_Stone(place_list_black);
+                if(player == player_sub*(-1)) {
+                    if(action.score > action_sub.score) {
+                        action.score = action_sub.score;
+                        if(depth == mini_max_depth) {
+                            action.x = action_sub.x;
+                            action.y = action_sub.y;
+                        }
+                    }
+                } else if(player == player_sub) {
+                    if(action.score < action_sub.score) {
+                        action.score = action_sub.score;
+                        if(depth == mini_max_depth) {
+                            action.x = action_sub.x;
+                            action.y = action_sub.y;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if(action.score == 0) {
+        action = Make_Random_Action();
+    }
+    return action;
+}
+
+//alpha := 自分の番で最大の評価値  beta := 相手の番で最小の評価値
+// 相手の番でalphaより大きいと探索は打ち切り　自分の番でbetaより小さいと探索は打ち切り
+
+Action Alpha_Beta(int depth, int x, int y, int alpha, int beta, int player_sub, int alpha_beta_depth) {
+    //葉に到達した場合は評価値を計算する
+    if(depth == 0) {
+        int score = Calculate_Score(player_sub);
+        Action action(score,x,y);
+        return action;
+    }
+    Action action(0,x,y);
+    for(int i=0;i<10;i++) {
+        for(int j=0;j<10;j++) {
+            if(Can_Put(i,j)) {
+                Put_Stone(i,j);
+                player *= (-1);
+                Action action_sub = Alpha_Beta(depth-1,i,j,alpha,beta,player_sub,alpha_beta_depth);
+                player *= (-1);
+                if(player == 1) Undo_Put_Stone(place_list_white);
+                else if(player == -1) Undo_Put_Stone(place_list_black);
+                if(player == player_sub*(-1)) {
+                    beta = min(beta,action_sub.score);
+                    if(action_sub.score < alpha) {
+                        i = 10;
+                        j = 10;
+                    }
+                    if(action.score > action_sub.score) {
+                        action.score = action_sub.score;
+                        if(depth == alpha_beta_depth) {
+                            action.x = action_sub.x;
+                            action.y = action_sub.y;
+                        }
+                    }
+                } else if(player == player_sub) {
+                    alpha = max(alpha,action_sub.score);
+                    if(action_sub.score > beta) {
+                        i = 10;
+                        j = 10;
+                    }
+                    if(action.score < action_sub.score) {
+                        action.score = action_sub.score;
+                        if(depth == alpha_beta_depth) {
+                            action.x = action_sub.x;
+                            action.y = action_sub.y;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if(action.score == 0) {
+        action = Make_Random_Action();
+    }
+    return action; 
+}
+
 int victory_white = 0, victory_black = 0;
 void Do_Game() {
     place_list_white.clear();
@@ -363,15 +368,17 @@ void Do_Game() {
     player = 1;
     Make_Board();
     while(Can_Continue() == true) {
+        //Show_Board();
         int x = initial_x , y = initial_y;
-        Action action(x,y,-1);
+        Action action(-1,x,y);
         if(player == 1) {
-            action = Make_Random_Action();
+            //action = Make_Random_Action();
+            int depth1 = 4;
+            action = Alpha_Beta(depth1,-1,-1,-1e9,1e9,player,depth1);
         } else if(player == -1) {
-            action = Alpha_Beta(alpha_beta_depth,-1,-1,-1e9,1e9);
-            if(action.score == 0) {
-                action = Make_Random_Action();
-            }
+            int depth2 = 2;
+            action = Alpha_Beta(depth2,-1,-1,-1e9,1e9,player,depth2);
+            //action = Make_Random_Action();
         }
         x = action.x;
         y = action.y;
@@ -387,6 +394,7 @@ void Do_Game() {
         }
         player *= (-1);
     }
+    //Show_Board();
     int cnt_w = 0, cnt_b = 0;
     for(int i=0;i<10;i++) {
         for(int j=0;j<10;j++) {
@@ -400,7 +408,7 @@ void Do_Game() {
 
 //メイン関数(オセロ 対戦ができる)
 int main() {
-   for(int i=0;i<100;i++) Do_Game();
+   for(int i=0;i<1;i++) Do_Game();
    cout << "w=" << victory_white << ' ' << "b=" << victory_black << endl;
     return 0;
 }

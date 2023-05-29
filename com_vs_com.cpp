@@ -334,6 +334,28 @@ Action Alpha_Beta(int depth, int x, int y, int alpha, int beta) {
     return action; 
 }
 
+const int initial_x = -100, initial_y = -100;
+
+// 石をおける場所をランダムに選択して返す
+Action Make_Random_Action() {
+    Action action(initial_x, initial_y, -1);
+    vector<pair<int,int> > candidate; //石を置ける場所をもつ配列
+    for(int i=0;i<10;i++) {
+        for(int j=0;j<10;j++) {
+            if(Can_Put(i,j) == true) {
+                candidate.push_back(make_pair(i,j));
+            }
+        }
+    }
+    if(candidate.size() > 0) {
+        random_device rand_maker;
+        int rand = rand_maker() % candidate.size();
+        action.x = candidate[rand].first;
+        action.y = candidate[rand].second;
+    }
+    return action;
+}
+
 int victory_white = 0, victory_black = 0;
 void Do_Game() {
     place_list_white.clear();
@@ -341,49 +363,28 @@ void Do_Game() {
     player = 1;
     Make_Board();
     while(Can_Continue() == true) {
-        int x , y;
-        vector<pair<int, int> > candidate; // 石をおける場所をもつ配列
+        int x = initial_x , y = initial_y;
+        Action action(x,y,-1);
         if(player == 1) {
-            for(int i=0;i<10;i++) {
-                for(int j=0;j<10;j++) {
-                    if(Can_Put(i,j) == true) {
-                        candidate.push_back(make_pair(i,j));
-                    }
-                }
-            }
-            if(candidate.size() > 0) {
-                random_device rand_maker;
-                int rand = rand_maker() % candidate.size();
-                x = candidate[rand].first;
-                y = candidate[rand].second;
-            }
-            else {
-                place_list_white.push_back({{-1,-1}});
+            action = Make_Random_Action();
+        } else if(player == -1) {
+            action = Alpha_Beta(alpha_beta_depth,-1,-1,-1e9,1e9);
+            if(action.score == 0) {
+                action = Make_Random_Action();
             }
         }
+        x = action.x;
+        y = action.y;
+        if(x != initial_x && y != initial_y) {
+            Put_Stone(x,y);
+        }
         else {
-            for(int i=0;i<10;i++) {
-                for(int j=0;j<10;j++) {
-                    if(Can_Put(i,j) == true) candidate.push_back(make_pair(i,j));
-                }
-            }
-            int max_size = candidate.size();
-            if(max_size > 0) {
-                random_device rand_maker;
-                int rand = rand_maker() % max_size;
-                x = candidate[rand].first;
-                y = candidate[rand].second;
-                //Action action = Mini_Max(mini_max_depth,-1,-1);
-                Action action = Alpha_Beta(alpha_beta_depth,-1,-1,-1e9,1e9);
-                if(action.score != 0) {
-                    x = action.x;
-                    y = action.y;
-                }
-            } else {
+            if(player == 1) {
+                place_list_white.push_back({{-1,-1}});
+            } else if(player == -1) {
                 place_list_black.push_back({{-1,-1}});
             }
         }
-        Put_Stone(x,y);
         player *= (-1);
     }
     int cnt_w = 0, cnt_b = 0;
